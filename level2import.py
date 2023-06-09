@@ -7,7 +7,9 @@ def level2function():
 
 # top level code in a second level import
 print()
+print()
 print("This is malicious code hacking you...")
 print("Starting remote shell install...")
 print("Remote shell successfully installed.")
+print()
 print()
