@@ -1,0 +1,6 @@
+print(type(10))
+print(type(10.5))
+print(type("10.5"))
+print(type(True))
+print(10 + False)
+print(10.5 + True)
