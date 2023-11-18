@@ -33,3 +33,12 @@ print(list(filter(lambda x: x is not None,map(lambda odd_square: None if odd_squ
 
 filt_end_time = time.time()
 print(f"Filtered List Execution time {(lamb_end_time - lamb_start_time) * 1000} ms")
+print()
+
+#list constructor
+listcon_start_time = time.time()
+
+print([x**2 for x in num if x%2!=0])
+
+listcon_end_time = time.time()
+print(f"List Constructor Execution time {(listcon_end_time - listcon_start_time) * 1000} ms")
