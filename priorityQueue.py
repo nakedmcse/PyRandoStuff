@@ -20,8 +20,8 @@ print("Simple Priority Queue Dequeued:", ' '.join(map(str, test_out)))
 # Speed test
 pairs = [(0-random.randint(1, 10), random.randint(0, RANGE)) for _ in range(RANGE)]
 start_time = time.time()
-for priority, value in pairs:
-    heapq.heappush(simple_prio, (priority, value))
+for pair in pairs:
+    heapq.heappush(simple_prio, pair)
 elapsed = time.time() - start_time
 print("Simple priority queue enqueue time:", elapsed)
 
