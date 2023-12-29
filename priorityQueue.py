@@ -1,27 +1,27 @@
 # Priority Queue example
 import heapq, time, random
 
-def get_pair():
-    return (0-random.randint(1, 10), random.randint(0, RANGE))
+def get_pair(i):
+    return (0-random.randint(1, 10), i, random.randint(0, RANGE))
 
 RANGE = 10000000
 
 simple_prio = []
 print("Priority Enqueued 1:1, 2:1, 3:1, 4:5, 5:9")
-heapq.heappush(simple_prio, (-1, 1))
-heapq.heappush(simple_prio, (-1, 2))
-heapq.heappush(simple_prio, (-1, 3))
-heapq.heappush(simple_prio, (-5, 4))
-heapq.heappush(simple_prio, (-9, 5))
+heapq.heappush(simple_prio, (-1, 1, 1))
+heapq.heappush(simple_prio, (-1, 2, 2))
+heapq.heappush(simple_prio, (-1, 3, 3))
+heapq.heappush(simple_prio, (-5, 4, 4))
+heapq.heappush(simple_prio, (-9, 5, 5))
 
 # Dequeue order check
 test_out = []
 while simple_prio:
-    test_out.append(heapq.heappop(simple_prio)[1])
+    test_out.append(heapq.heappop(simple_prio)[2])
 print("Simple Priority Queue Dequeued:", ' '.join(map(str, test_out)))
 
 # Speed test
-pairs = [get_pair() for _ in range(RANGE)]
+pairs = [get_pair(i) for i in range(RANGE)]
 start_time = time.time()
 for pair in pairs:
     heapq.heappush(simple_prio, pair)
