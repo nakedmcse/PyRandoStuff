@@ -31,6 +31,9 @@ class dict_priority_queue:
             del self.queue[maxkey]
         return retval
 
+def get_pair():
+    return (0-random.randint(1, 10), random.randint(0, RANGE))
+
 RANGE = 10000000
 
 simple_prio = dict_priority_queue();
@@ -48,7 +51,7 @@ while not simple_prio.empty():
 print("Simple Priority Queue Dequeued:", ' '.join(map(str, test_out)))
 
 # Speed test
-pairs = [(0-random.randint(1, 10), random.randint(0, RANGE))] * RANGE
+pairs = [get_pair() for _ in range(RANGE)]
 start_time = time.time()
 for pair in pairs:
     simple_prio.enqueue(pair[1],pair[0])

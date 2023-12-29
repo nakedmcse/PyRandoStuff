@@ -1,6 +1,9 @@
 # Priority Queue example
 import heapq, time, random
 
+def get_pair():
+    return (0-random.randint(1, 10), random.randint(0, RANGE))
+
 RANGE = 10000000
 
 simple_prio = []
@@ -18,7 +21,7 @@ while simple_prio:
 print("Simple Priority Queue Dequeued:", ' '.join(map(str, test_out)))
 
 # Speed test
-pairs = [(0-random.randint(1, 10), random.randint(0, RANGE))] * RANGE
+pairs = [get_pair() for _ in range(RANGE)]
 start_time = time.time()
 for pair in pairs:
     heapq.heappush(simple_prio, pair)
