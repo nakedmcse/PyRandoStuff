@@ -40,6 +40,17 @@ class triangle(shape):
         self.height = float(input("Enter Height:"))
 
 
+# Star
+class star(shape):
+    def area(self):
+        circle_area = math.pi * self.radius * self.radius
+        missing_area = math.pow(self.radius,2) * (math.pi - math.sqrt(3.0))
+        return circle_area - missing_area
+
+    def getparams(self):
+        self.radius = float(input("Enter Radius:"))
+
+
 # Main
 shapetype = input("Enter Shape Type:")
 if shapetype not in globals():

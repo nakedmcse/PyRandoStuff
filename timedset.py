@@ -62,6 +62,7 @@ class TimedSet(set):
     return len(set(self._map.keys()))
   
   def __contains__(self, item):
+    
     return item in set(self._map)
 
 # Simple tests
