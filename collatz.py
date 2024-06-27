@@ -1,27 +1,55 @@
 # Collatz
-import numpy as np
 import time
+import threading
 
 
-def vectorized_collatz(start, end):
-    seeds = np.arange(start, end)
-    steps = np.zeros_like(seeds)
+class ThreadWithResult(threading.Thread):
+    def __init__(self, group=None, target=None, name=None, args=(), kwargs={}, *, daemon=None):
+        def function():
+            self.result = target(*args, **kwargs)
+        super().__init__(group=group, target=function, name=name, daemon=daemon)
 
-    while np.any(seeds > 1):
-        even_mask = seeds % 2 == 0
-        odd_mask = ~even_mask & (seeds > 1)
 
-        seeds[even_mask] //= 2
-        seeds[odd_mask] = seeds[odd_mask] * 3 + 1
-        steps += even_mask | odd_mask
+def collatz(seed: int):
+    global memos
+    steps = 0
+    while seed > 1:
+        if seed < len(memos) and memos[seed] > 0:
+            steps += memos[seed]
+            break
+
+        if seed % 2 == 0:
+            steps += 1
+            seed = seed // 2
+            continue
+
+        steps += 1
+        seed = seed * 3 + 1
 
     return steps
 
 
+esteps = 0
+memos = [0] * 10_000_000
 start_time = time.time()
-steps = vectorized_collatz(1, 1_000_000)
+for i in range(1, 10_000_000, 4):
+    t1 = ThreadWithResult(target=collatz, args=(i,))
+    t1.start()
+    t2 = ThreadWithResult(target=collatz, args=(i+1,))
+    t2.start()
+    t3 = ThreadWithResult(target=collatz, args=(i+2,))
+    t3.start()
+    t4 = ThreadWithResult(target=collatz, args=(i+3,))
+    t4.start()
+    t1.join()
+    memos[i] = t1.result
+    t2.join()
+    memos[i+1] = t2.result
+    t3.join()
+    memos[i+2] = t3.result
+    t4.join()
+    memos[i+4] = t4.result
+    if i % 1000000 == 0:
+        print(f'Seed:{i} Steps:{esteps}')
 elapsed = time.time() - start_time
-
-for i in range(0, 1_000_000, 100_000):
-    print(f'Seed:{i} Steps:{steps[i-1]}')
 print(f"Collatz time: {elapsed}")
