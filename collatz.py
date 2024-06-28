@@ -1,5 +1,6 @@
 # Collatz
 import time
+import threading
 
 
 def collatz(seed: int):
@@ -21,13 +22,28 @@ def collatz(seed: int):
     return steps
 
 
-esteps = 0
+def chunk(start: int, end: int):
+    global memos
+    esteps = 0
+    for i in range(start, end):
+        esteps = collatz(i)
+        memos[i] = esteps
+        if i % 5000000 == 0:
+            print(f'Seed:{i} Steps:{esteps}')
+
 memos = [0] * 10_000_000
 start_time = time.time()
-for i in range(1, 10_000_000):
-    esteps = collatz(i)
-    memos[i] = esteps
-    if i % 1000000 == 0:
-        print(f'Seed:{i} Steps:{esteps}')
+t1 = threading.Thread(target=chunk, args=(1, 2_500_000))
+t1.start()
+t2 = threading.Thread(target=chunk, args=(2_500_000, 5_000_000))
+t2.start()
+t3 = threading.Thread(target=chunk, args=(5_000_000, 7_500_000))
+t3.start()
+t4 = threading.Thread(target=chunk, args=(7_500_000, 10_000_000))
+t4.start()
+t1.join()
+t2.join()
+t3.join()
+t4.join()
 elapsed = time.time() - start_time
 print(f"Collatz time: {elapsed}")
