@@ -27,6 +27,32 @@ def sum_intervals(intervals:list):
     return sum
 
 
-print(f'Test One - should be 7 - {sum_intervals(testlist_one)}')
-print(f'Test Two - should be 19 - {sum_intervals(testlist_two)}')
-print(f'Test Three - should be 100000030 - {sum_intervals(testlist_three)}')
+def sum_intervals_single(intervals:list):
+    sum = 0
+    cur_start = None
+    cur_end = None
+    intervals.sort()
+    for i in range(0, len(intervals)):
+        if cur_start is None:
+            cur_start = intervals[i][0]
+        if cur_end is None:
+            cur_end = intervals[i][1]
+        if i+1 < len(intervals):
+            if intervals[i+1][0] < cur_end:
+                cur_end = intervals[i+1][1]
+                continue
+            else:
+                sum += cur_end - cur_start
+                cur_start = None
+                cur_end = None
+                continue
+        if i == len(intervals)-1:
+            if cur_start == 1:
+                cur_start = 0
+            sum += cur_end - cur_start
+    return sum
+
+
+print(f'Test One - should be 7 - {sum_intervals_single(testlist_one)}')
+print(f'Test Two - should be 19 - {sum_intervals_single(testlist_two)}')
+print(f'Test Three - should be 100000030 - {sum_intervals_single(testlist_three)}')
