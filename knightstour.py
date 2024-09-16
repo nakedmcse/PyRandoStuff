@@ -46,7 +46,7 @@ class knight_moves:
         self.right_up = self.calculate(x+2, y+1, current_board) if self.inrange(x+2) and self.inrange(y+1) and current_board[x+2][y+1] == 0 else 0
         self.right_down = self.calculate(x+2, y-1, current_board) if self.inrange(x+2) and self.inrange(y-1) and current_board[x+2][y-1] == 0 else 0
 
-    def getmove(self, x: int, y: int, current_board: list) -> vertex:
+    def getmoves(self, x: int, y: int, current_board: list) -> list[vertex]:
         moves = [
             (self.up_left, vertex(-1, 2)),
             (self.up_right, vertex(1, 2)),
@@ -60,38 +60,41 @@ class knight_moves:
 
         valid_moves = [move for move in moves if move[0] > 0]
         if not valid_moves:
-            return vertex(0, 0)  # No valid moves available
+            return [vertex(0, 0)]  # No valid moves available
 
         valid_moves.sort(key=lambda x: x[0])
         min_onward_moves = valid_moves[0][0]
         best_moves = [move for cost, move in valid_moves if cost == min_onward_moves]
-        best_move = random.choice(best_moves)
+        print(f'Found {len(best_moves)} moves')
 
-        return best_move
+        return best_moves
 
 
-def walk_board(x: int, y: int, current_board: list, path: list[vertex]):
-    current_board[x][y] = 1
+def walk_board(x: int, y: int, current_board: list, path: list[vertex], winning_paths: list):
+    new_board = current_board.copy()
+    new_path = path.copy()
+    new_board[x][y] = 1
     available_moves = knight_moves()
-    available_moves.update(x, y, current_board)
-    chosen_move = available_moves.getmove(x, y, current_board)
-    if chosen_move.x != 0 and chosen_move.y != 0:
-        path.append(vertex(x + chosen_move.x, y + chosen_move.y))
+    available_moves.update(x, y, new_board)
+    for chosen_move in available_moves.getmoves(x, y, new_board):
+        if chosen_move.x != 0 and chosen_move.y != 0:
+            new_path.append(vertex(x + chosen_move.x, y + chosen_move.y))
 
-    # exit conditions
-    if chosen_move.x == 0 and chosen_move.y == 0:
-        return
+        # exit conditions
+        if chosen_move.x == 0 and chosen_move.y == 0:
+            if not any(0 in row for row in new_board):
+                winning_paths.append(new_path)
+            else:
+                print(new_board)
+            return
 
-    # walk
-    walk_board(x + chosen_move.x, y + chosen_move.y, current_board, path)
+        # walk
+        walk_board(x + chosen_move.x, y + chosen_move.y, new_board, new_path, winning_paths)
 
-while True:
-    board = [[0 for x in range(8)] for y in range(8)]
-    knights_tour = [vertex(1, 0)]
-    walk_board(1, 0, board, knights_tour)
-    if not any(0 in row for row in board):
-        break
 
-for step in knights_tour:
-    print(f'({step.x},{step.y})')
-print(board)
+board = [[0 for x in range(8)] for y in range(8)]
+knights_tour = [vertex(1, 0)]
+winning_tours = []
+walk_board(1, 0, board, knights_tour, winning_tours)
+
+print(f'Found {len(winning_tours)} winning tours')
