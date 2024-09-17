@@ -10,6 +10,16 @@ def cls():
     print("\033[2J\033[H", end='')
 
 
+def draw_board(current_board: list):
+    i = 0
+    for row in current_board:
+        line = ''
+        for value in row:
+            line += '**' if value == 1 else '..'
+        print_at(i, 0, line)
+        i += 1
+
+
 class vertex:
     def __init__(self, x: int, y: int):
         self.x = x
@@ -78,16 +88,6 @@ class knight_moves:
         return best_moves
 
 
-def draw_board(current_board: list):
-    i = 0
-    for row in current_board:
-        line = ''
-        for value in row:
-            line += '**' if value == 1 else '..'
-        print_at(i, 0, line)
-        i += 1
-
-
 def walk_board(x: int, y: int, current_board: list, path: list[vertex], winning_paths: list):
     new_board = copy.deepcopy(current_board)
     new_path = copy.deepcopy(path)
@@ -99,13 +99,7 @@ def walk_board(x: int, y: int, current_board: list, path: list[vertex], winning_
     # Exit condition
     if len(next_moves) == 1 and next_moves[0].x == 0 and next_moves[0].y == 0:
         if not any(0 in row for row in new_board):
-            print("WINNING PATH")
             winning_paths.append(new_path)
-        elif sum(0 in row for row in new_board) == 1:
-            print(f"CLOSE PATH - {x},{y}")
-            print(new_board)
-        else:
-            draw_board(new_board)
         return
 
     # Search paths
