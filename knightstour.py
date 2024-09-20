@@ -78,8 +78,13 @@ class knight_moves:
         ]
 
         valid_moves = [move for move in moves if move[0] > -1]
-        if not valid_moves:
+        if len(valid_moves) == 0:
             return [vertex(0, 0)]  # No valid moves available
+
+        if any(x for x in valid_moves if x[0] == 0) and len(valid_moves)>1:
+            if all(x[0] == 0 for x in valid_moves):
+                return [vertex(0, 0)]  # All dead ends
+            valid_moves = [move for move in valid_moves if move[0] > 0]  # Remove dead ends if other option
 
         valid_moves.sort(key=lambda x: x[0])
         min_onward_moves = valid_moves[0][0]
@@ -90,7 +95,6 @@ class knight_moves:
 
 def walk_board(x: int, y: int, current_board: list, path: list[vertex], winning_paths: list):
     new_board = copy.deepcopy(current_board)
-    new_path = copy.deepcopy(path)
     new_board[x][y] = 1
     available_moves = knight_moves()
     available_moves.update(x, y, new_board)
@@ -99,20 +103,20 @@ def walk_board(x: int, y: int, current_board: list, path: list[vertex], winning_
     # Exit condition
     if len(next_moves) == 1 and next_moves[0].x == 0 and next_moves[0].y == 0:
         if not any(0 in row for row in new_board):
-            winning_paths.append(new_path)
+            winning_paths.append(path)
         return
 
     # Search paths
     for chosen_move in next_moves:
-        if chosen_move.x != 0 and chosen_move.y != 0:
-            new_path.append(vertex(x + chosen_move.x, y + chosen_move.y))
-            walk_board(x + chosen_move.x, y + chosen_move.y, new_board, new_path, winning_paths)
+        new_path = copy.deepcopy(path)
+        new_path.append(vertex(x + chosen_move.x, y + chosen_move.y))
+        walk_board(x + chosen_move.x, y + chosen_move.y, new_board, new_path, winning_paths)
 
 
 board = [[0 for x in range(8)] for y in range(8)]
 knights_tour = [vertex(1, 0)]
 winning_tours = []
-cls()
+#cls()
 walk_board(1, 0, board, knights_tour, winning_tours)
 
 print(f'Found {len(winning_tours)} winning tours')
