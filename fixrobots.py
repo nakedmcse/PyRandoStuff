@@ -7,13 +7,13 @@
 def min_total_dist(robots: list[int], factories: list[list[int]]) -> int:
     retval = float('inf')
     robots.sort()
+    factories.sort()
 
     # evaluate each robot as the start
     for rb_idx in range(len(robots)):
         possible_val = 0
         if rb_idx > 0:
             robots = [robots[(i+rb_idx) % len(robots)] for i, x in enumerate(robots)]
-        factories.sort()
 
         # convert factories to multiple slot entries, to account for capacity
         slots = []
