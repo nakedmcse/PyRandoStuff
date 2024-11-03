@@ -9,32 +9,13 @@ def replace_logic(oper: str) -> str:
 with open('circuit.txt') as file:
     gates = [[y[1], y[0]] for y in (x.split(' -> ') for x in file.read().splitlines())]
 
-gates.sort(key=lambda x: len(x[1].split(' ')), reverse=True)
-#print(gates)
+commands = [f'{replace_logic(x[0])} = {replace_logic(x[1])}' for x in gates]
 
-dep_sorted_gates = []
-insert = gates.pop(0)
-insert[1] = replace_logic(insert[1])
-dep_sorted_gates.append(insert)
-for gate in gates:
-    found = False
-    gate[0] = replace_logic(gate[0])
-    gate[1] = replace_logic(gate[1])
-    for i in range(len(dep_sorted_gates)):
-        if gate[0]+' ' in dep_sorted_gates[i][1]:
-            dep_sorted_gates.insert(i, gate)
-            found = True
-            break
-    if not found:
-        dep_sorted_gates.append(gate)
+while 'a' not in globals():
+    for command in commands:
+        try:
+            exec(command)
+        except:
+            continue
 
-commands = [f'{x[0]} = {x[1]}' for x in dep_sorted_gates]
-commands.append('print(a)')
-print(commands)
-
-for command in commands:
-    try:
-        exec(command)
-    except:
-        continue
-
+print(f'Value of a = {a}')
