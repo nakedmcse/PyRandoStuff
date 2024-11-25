@@ -59,6 +59,36 @@ def search_vector_history(h1: list[vector], h2: list[vector], h3: list[vector]) 
     return None
 
 
+def get_stone_velocity(hails: list[hail]) -> vector:
+    retval = vector(999999, 999999, 999999)
+
+    x_velocities = [h.velocity.x for h in hails]
+    x_duplicates = [x for x in x_velocities if x_velocities.count(x) > 1]
+    x_dup_hails = [h for h in hails if h.velocity.x == x_duplicates[0]]
+
+    y_velocities = [h.velocity.y for h in hails]
+    y_duplicates = [x for x in y_velocities if y_velocities.count(x) > 1]
+    y_dup_hails = [h for h in hails if h.velocity.y == y_duplicates[0]]
+
+    z_velocities = [h.velocity.z for h in hails]
+    z_duplicates = [x for x in z_velocities if z_velocities.count(x) > 1]
+    z_dup_hails = [h for h in hails if h.velocity.z == z_duplicates[0]]
+
+    x_dist = x_dup_hails[0].position.x - x_dup_hails[1].position.x
+    y_dist = y_dup_hails[0].position.y - y_dup_hails[1].position.y
+    z_dist = x_dup_hails[0].position.z - z_dup_hails[1].position.z
+
+    for i in range(-1000, 1000):
+        if i != x_duplicates[0] and x_dist % (i - x_duplicates[0]) == 0 and i < retval.x:
+            retval.x = i
+        if i != y_duplicates[0] and y_dist % (i - y_duplicates[0]) == 0 and i < retval.y:
+            retval.y = i
+        if i != z_duplicates[0] and z_dist % (i - z_duplicates[0]) == 0 and i < retval.z:
+            retval.z = i
+
+    return retval
+
+
 with open('2023_day24_test.txt') as file:
     hail_list = [hail(vector(int(y[0]), int(y[1]), int(y[2])), vector(int(y[3]), int(y[4]), int(y[5])))
                  for y in (re.findall(r'-?\d+', x) for x in file.read().splitlines())]
@@ -68,10 +98,6 @@ hail_list.sort(key=lambda x: x.speed())
 first_hail = hail_list[0]
 mid_hail = hail_list[1]
 last_hail = hail_list[2]
-
-#first_hail.set_time_index(5673290541700)
-#mid_hail.set_time_index(5673290541700)
-#last_hail.set_time_index(5673290541700)
 
 first_hail_history = []
 mid_hail_history = []
@@ -86,6 +112,8 @@ while i < 500:
     mid_hail.increment_position()
     last_hail.increment_position()
     i += 1
+
+print(get_stone_velocity(hail_list))
 
 result = search_vector_history(first_hail_history, mid_hail_history, last_hail_history)
 if result:
