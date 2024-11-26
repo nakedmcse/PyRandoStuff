@@ -24,23 +24,36 @@ class hail:
     def speed(self) -> float:
         return math.sqrt(self.velocity.x**2 + self.velocity.y**2 + self.velocity.z**2)
 
-    def increment_position(self):
-        self.position.x += self.velocity.x
-        self.position.y += self.velocity.y
-        self.position.z += self.velocity.z
-
-    def set_time_index(self, ti: int):
-        self.position.x += (self.velocity.x * ti)
-        self.position.y += (self.velocity.y * ti)
-        self.position.z += (self.velocity.z * ti)
-
 
 def subtract_vectors(a: vector, b: vector) -> vector:
     return vector(a.x - b.x, a.y - b.y, a.z - b.z)
 
 
+def dot_product(a: vector, b: vector) -> int:
+    return (a.x * b.x) + (a.y * b.y) + (a.z * b.z)
+
+
 def cross_product(a: vector, b: vector) -> vector:
     return vector((a.y*b.z) - (a.z*b.y), (a.z*b.x) - (a.x*b.z), (a.x*b.y) - (a.y*b.x))
+
+
+def find_plane(p1: vector, v1: vector, p2: vector, v2: vector):
+    p12 = subtract_vectors(p1, p2)
+    v12 = subtract_vectors(v1, v2)
+    vv = cross_product(v1, v2)
+    return (cross_product(p12, v12), dot_product(p12, vv))
+
+
+def extend_lines(r: int, a: vector, s: int, b: vector, t: int, c: vector) -> vector:
+    x = r*a.x + s*b.x + t*c.x
+    y = r*a.y + s*b.y + t*c.y
+    z = r*a.z + s*b.z + t*c.z
+    return vector(x, y, z)
+
+
+def independent(a: vector, b: vector) -> bool:
+    l = cross_product(a, b)
+    return l.x != 0 or l.y !=0 or l.z != 0
 
 
 def on_same_line(a: vector, b: vector, c: vector) -> bool:
@@ -50,81 +63,44 @@ def on_same_line(a: vector, b: vector, c: vector) -> bool:
     return cross.x == 0 and cross.y == 0 and cross.z == 0
 
 
-def search_vector_history(h1: list[vector], h2: list[vector], h3: list[vector]) -> list[int] | None:
-    for f in range(len(h1)):
-        for m in range(len(h2)):
-            for l in range(len(h3)):
-                if on_same_line(h1[f], h2[m], h3[l]):
-                    return [f, m, l]
-    return None
+def find_rock(p1: hail, p2: hail, p3: hail):
+    a, A = find_plane(p1.position, p1.velocity, p2.position, p2.velocity)
+    b, B = find_plane(p1.position, p1.velocity, p3.position, p3.velocity)
+    c, C = find_plane(p2.position, p2.velocity, p3.position, p3.velocity)
+
+    w = extend_lines(A, cross_product(b, c), B, cross_product(c, a), C, cross_product(a, b))
+    t = dot_product(a, cross_product(b, c))
+    wt = vector(w.x // t, w.y // t, w.z // t)
+    w1 = subtract_vectors(p1.velocity, wt)
+    w2 = subtract_vectors(p2.velocity, wt)
+    ww = cross_product(w1, w2)
+
+    D = dot_product(ww, cross_product(p2.position, w2))
+    E = dot_product(ww, cross_product(p1.position, w1))
+    F = dot_product(p1.position, ww)
+    scaling = dot_product(ww, ww)
+
+    rock_position = extend_lines(D, w1, -E, w2, F, ww)
+    return (rock_position, scaling)
 
 
-def get_stone_velocity(hails: list[hail]) -> vector:
-    retval = vector(999999, 999999, 999999)
-
-    x_velocities = [h.velocity.x for h in hails]
-    x_duplicates = [x for x in x_velocities if x_velocities.count(x) > 1]
-    x_dup_hails = [h for h in hails if h.velocity.x == x_duplicates[0]]
-
-    y_velocities = [h.velocity.y for h in hails]
-    y_duplicates = [x for x in y_velocities if y_velocities.count(x) > 1]
-    y_dup_hails = [h for h in hails if h.velocity.y == y_duplicates[0]]
-
-    z_velocities = [h.velocity.z for h in hails]
-    z_duplicates = [x for x in z_velocities if z_velocities.count(x) > 1]
-    z_dup_hails = [h for h in hails if h.velocity.z == z_duplicates[0]]
-
-    x_dist = x_dup_hails[0].position.x - x_dup_hails[1].position.x
-    y_dist = y_dup_hails[0].position.y - y_dup_hails[1].position.y
-    z_dist = x_dup_hails[0].position.z - z_dup_hails[1].position.z
-
-    for i in range(-1000, 1000):
-        if i != x_duplicates[0] and x_dist % (i - x_duplicates[0]) == 0 and i < retval.x:
-            retval.x = i
-        if i != y_duplicates[0] and y_dist % (i - y_duplicates[0]) == 0 and i < retval.y:
-            retval.y = i
-        if i != z_duplicates[0] and z_dist % (i - z_duplicates[0]) == 0 and i < retval.z:
-            retval.z = i
-
-    return retval
-
-
-with open('2023_day24_test.txt') as file:
+with open('2023_day24_input.txt') as file:
     hail_list = [hail(vector(int(y[0]), int(y[1]), int(y[2])), vector(int(y[3]), int(y[4]), int(y[5])))
                  for y in (re.findall(r'-?\d+', x) for x in file.read().splitlines())]
 
-hail_list.sort(key=lambda x: x.speed())
+p1 = hail_list[0]
 
-first_hail = hail_list[0]
-mid_hail = hail_list[1]
-last_hail = hail_list[2]
+for i in range(1, len(hail_list)):
+    if independent(p1.velocity, hail_list[i].velocity):
+        p2 = hail_list[i]
+        break
 
-first_hail_history = []
-mid_hail_history = []
-last_hail_history = []
+for j in range(i+1, len(hail_list)):
+    if independent(p1.velocity, hail_list[j].velocity) and independent(p2.velocity, hail_list[j].velocity):
+        p3 = hail_list[j]
+        break
 
-i = 0
-while i < 500:
-    first_hail_history.append(vector(first_hail.position.x, first_hail.position.y, first_hail.position.z))
-    mid_hail_history.append(vector(mid_hail.position.x, mid_hail.position.y, mid_hail.position.z))
-    last_hail_history.append(vector(last_hail.position.x, last_hail.position.y, last_hail.position.z))
-    first_hail.increment_position()
-    mid_hail.increment_position()
-    last_hail.increment_position()
-    i += 1
-
-print(get_stone_velocity(hail_list))
-
-result = search_vector_history(first_hail_history, mid_hail_history, last_hail_history)
-if result:
-    print(f'Line found at time indexes {result[0]}, {result[1]}, {result[2]}')
-    time_diff = result[1] - result[0]
-    stone_velocity = vector((mid_hail_history[result[1]].x - first_hail_history[result[0]].x)//time_diff,
-                            (mid_hail_history[result[1]].y - first_hail_history[result[0]].y)//time_diff,
-                            (mid_hail_history[result[1]].z - first_hail_history[result[0]].z)//time_diff)
-    stone_position = vector(first_hail_history[result[0]].x - (result[0] * stone_velocity.x),
-                            first_hail_history[result[0]].y - (result[0] * stone_velocity.y),
-                            first_hail_history[result[0]].z - (result[0] * stone_velocity.z))
-    print(f'Position: {stone_position} Velocity: {stone_velocity}')
-else:
-    print('No solution found')
+rock_pos, scale = find_rock(p1, p2, p3)
+print(rock_pos.x // scale, rock_pos.y // scale, rock_pos.z // scale)
+answer = (rock_pos.x + rock_pos.y + rock_pos.z) // scale
+print(f'Part 2 answer is {answer}')
