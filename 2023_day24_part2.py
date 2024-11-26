@@ -37,11 +37,11 @@ def cross_product(a: vector, b: vector) -> vector:
     return vector((a.y*b.z) - (a.z*b.y), (a.z*b.x) - (a.x*b.z), (a.x*b.y) - (a.y*b.x))
 
 
-def find_plane(p1: vector, v1: vector, p2: vector, v2: vector):
+def find_plane(p1: vector, v1: vector, p2: vector, v2: vector) -> (vector, int):
     p12 = subtract_vectors(p1, p2)
     v12 = subtract_vectors(v1, v2)
-    vv = cross_product(v1, v2)
-    return (cross_product(p12, v12), dot_product(p12, vv))
+    vxv = cross_product(v1, v2)
+    return cross_product(p12, v12), dot_product(p12, vxv)
 
 
 def extend_lines(r: int, a: vector, s: int, b: vector, t: int, c: vector) -> vector:
@@ -51,11 +51,6 @@ def extend_lines(r: int, a: vector, s: int, b: vector, t: int, c: vector) -> vec
     return vector(x, y, z)
 
 
-def independent(a: vector, b: vector) -> bool:
-    l = cross_product(a, b)
-    return l.x != 0 or l.y !=0 or l.z != 0
-
-
 def on_same_line(a: vector, b: vector, c: vector) -> bool:
     vector_ab = subtract_vectors(b, a)
     vector_ac = subtract_vectors(c, a)
@@ -63,25 +58,24 @@ def on_same_line(a: vector, b: vector, c: vector) -> bool:
     return cross.x == 0 and cross.y == 0 and cross.z == 0
 
 
-def find_rock(p1: hail, p2: hail, p3: hail):
-    a, A = find_plane(p1.position, p1.velocity, p2.position, p2.velocity)
-    b, B = find_plane(p1.position, p1.velocity, p3.position, p3.velocity)
-    c, C = find_plane(p2.position, p2.velocity, p3.position, p3.velocity)
+def find_rock_pos(h1: hail, h2: hail, h3: hail) -> (vector, int):
+    a, A = find_plane(h1.position, h1.velocity, h2.position, h2.velocity)
+    b, B = find_plane(h1.position, h1.velocity, h3.position, h3.velocity)
+    c, C = find_plane(h2.position, h2.velocity, h3.position, h3.velocity)
 
     w = extend_lines(A, cross_product(b, c), B, cross_product(c, a), C, cross_product(a, b))
     t = dot_product(a, cross_product(b, c))
     wt = vector(w.x // t, w.y // t, w.z // t)
-    w1 = subtract_vectors(p1.velocity, wt)
-    w2 = subtract_vectors(p2.velocity, wt)
-    ww = cross_product(w1, w2)
+    w1 = subtract_vectors(h1.velocity, wt)
+    w2 = subtract_vectors(h2.velocity, wt)
+    wxw = cross_product(w1, w2)
 
-    D = dot_product(ww, cross_product(p2.position, w2))
-    E = dot_product(ww, cross_product(p1.position, w1))
-    F = dot_product(p1.position, ww)
-    scaling = dot_product(ww, ww)
-
-    rock_position = extend_lines(D, w1, -E, w2, F, ww)
-    return (rock_position, scaling)
+    D = dot_product(wxw, cross_product(h2.position, w2))
+    E = dot_product(wxw, cross_product(h1.position, w1))
+    F = dot_product(h1.position, wxw)
+    scaling = dot_product(wxw, wxw)
+    rock_position = extend_lines(D, w1, -E, w2, F, wxw)
+    return rock_position, scaling
 
 
 with open('2023_day24_input.txt') as file:
@@ -89,18 +83,10 @@ with open('2023_day24_input.txt') as file:
                  for y in (re.findall(r'-?\d+', x) for x in file.read().splitlines())]
 
 p1 = hail_list[0]
+p2 = hail_list[1]
+p3 = hail_list[2]
 
-for i in range(1, len(hail_list)):
-    if independent(p1.velocity, hail_list[i].velocity):
-        p2 = hail_list[i]
-        break
-
-for j in range(i+1, len(hail_list)):
-    if independent(p1.velocity, hail_list[j].velocity) and independent(p2.velocity, hail_list[j].velocity):
-        p3 = hail_list[j]
-        break
-
-rock_pos, scale = find_rock(p1, p2, p3)
+rock_pos, scale = find_rock_pos(p1, p2, p3)
 print(rock_pos.x // scale, rock_pos.y // scale, rock_pos.z // scale)
 answer = (rock_pos.x + rock_pos.y + rock_pos.z) // scale
 print(f'Part 2 answer is {answer}')
