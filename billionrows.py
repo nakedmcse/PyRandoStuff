@@ -3,6 +3,7 @@ import argparse
 import multiprocessing as mp
 from itertools import islice
 from typing import Any, Generator
+from concurrent.futures import ProcessPoolExecutor, as_completed
 
 import numpy as np
 from multiprocessing.spawn import freeze_support
@@ -74,25 +75,50 @@ def read_file_chunk(filename: str, lines: int =1000) -> Generator[list[str], Any
                 break
             yield chunk
 
-def parse(filename: str):
+def parse_chunk(chunk: list[str]) -> {}:
     output_values = {}
-    chunk_size = 10_000_000
+    for row in chunk:
+        try:
+            key, val = row.split(';')
+            val = float(val)
+        except (ValueError, IndexError):
+            continue
 
-    for chunk in read_file_chunk(filename, chunk_size):
-        for row in chunk:
-            split_row = row.split(';')
-            if len(split_row) != 2:
-                continue
-            existing_vals = output_values.get(split_row[0])
-            new_value = float(split_row[1])
-            if existing_vals is None:
-                existing_vals = [1, new_value, new_value, new_value]
+        if key not in output_values:
+            output_values[key] = [1, val, val, val]  # count, max, sum, min
+        else:
+            stats = output_values[key]
+            stats[0] += 1
+            stats[1] = max(stats[1], val)
+            stats[2] += val  # sum
+            stats[3] = min(stats[3], val)
+
+    for key, stats in output_values.items():
+        stats[2] = stats[2] / stats[0]  # replace sum with average
+    return output_values
+
+def parse(filename: str) -> None:
+    chunk_size = 10_000_000
+    num_procs = 8
+
+    output_values = {}
+    with ProcessPoolExecutor(max_workers=num_procs) as executor:
+        futures = [executor.submit(parse_chunk, chunk) for chunk in read_file_chunk(filename, chunk_size)]
+    for future in as_completed(futures):
+        data = future.result()
+        for k, v in data.items():
+            if k not in output_values:
+                output_values[k] = v
             else:
-                existing_vals[0] += 1
-                existing_vals[1] = max(existing_vals[1], new_value)
-                existing_vals[2] = (existing_vals[2] + new_value) / existing_vals[0]
-                existing_vals[3] = min(existing_vals[3], new_value)
-            output_values[split_row[0]] = existing_vals
+                existing_vals = output_values[k]
+                existing_vals[0] += v[0]
+                existing_vals[1] = max(existing_vals[1], v[1])
+                existing_vals[2] += v[2]
+                existing_vals[3] = min(existing_vals[3], v[3])
+                output_values[k] = existing_vals
+
+    for k, v in output_values.items():
+        v[2] = v[2] / v[0]
 
     sorted_stations = sorted(output_values.keys())
     output_lines = []
