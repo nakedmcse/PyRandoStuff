@@ -10,23 +10,13 @@ from multiprocessing.spawn import freeze_support
 
 
 # Generate 1 billion rows of random data
-def generate_chunk(stations: list, num_rows: int, seed: float, queue: mp.Queue) -> None:
+def generate_chunk(stations: list, num_rows: int, seed: float) -> str:
     np.random.seed(seed)  # Important: unique seed per process
     station_indices = np.random.randint(0, len(stations), size=num_rows)
     values = np.random.uniform(-100, 100, size=num_rows)
 
     chunk = [f"{stations[i]};{values[j]:.2f}" for j, i in enumerate(station_indices)]
-    queue.put("\n".join(chunk) + "\n")
-
-def writer(filename: str, queue: mp.Queue, total_chunks: int) -> None:
-    with open(filename, "w", buffering=1024*1024) as f:
-        completed = 0
-        while completed < total_chunks:
-            chunk = queue.get()
-            if chunk is None:
-                completed += 1
-            else:
-                f.write(chunk)
+    return "\n".join(chunk) + "\n"
 
 def generate(filename: str) -> None:
     print('Reading weather station names')
@@ -38,33 +28,14 @@ def generate(filename: str) -> None:
     num_chunks = total // chunk_size
     num_procs = 8
 
-    queue = mp.Queue(maxsize=num_procs * 2)
-    writer_proc = mp.Process(target=writer, args=(filename, queue, num_chunks))
-    writer_proc.start()
-
     print(f'Generating {total:,} rows using {num_procs} workers...')
 
-    processes = []
-    for chunk_id in range(num_chunks):
-        seed = chunk_id
-        p = mp.Process(target=generate_chunk, args=(stations, chunk_size, seed, queue))
-        p.start()
-        processes.append(p)
-
-        # Limit number of active processes
-        if len(processes) >= num_procs:
-            for p in processes:
-                p.join()
-            processes = []
-
-    for p in processes:
-        p.join()
-
-    # Signal writer to finish
-    for _ in range(num_chunks):
-        queue.put(None)
-
-    writer_proc.join()
+    with ProcessPoolExecutor(max_workers=num_procs) as executor:
+        futures = [executor.submit(generate_chunk, stations, chunk_size, seed) for seed in range(num_chunks)]
+    for future in as_completed(futures):
+        data = future.result()
+        with open(filename, "a", buffering=1024*1024) as f:
+            f.write(data)
 
 # Parse given data file to {station=min/avg/max}
 def read_file_chunk(filename: str, lines: int =1000) -> Generator[list[str], Any, None]:
