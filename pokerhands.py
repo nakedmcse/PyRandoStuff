@@ -50,6 +50,24 @@ class Rank:
         # Draw
         return 0
 
+    def __eq__(self, other):
+        return self.__cmp__(other) == 0
+
+    def __ne__(self, other):
+        return self.__cmp__(other) != 0
+
+    def __gt__(self, other):
+        return self.__cmp__(other) > 0
+
+    def __lt__(self, other):
+        return self.__cmp__(other) < 0
+
+    def __ge__(self, other):
+        return self.__cmp__(other) >= 0
+
+    def __le__(self, other):
+        return self.__cmp__(other) <= 0
+
 def rankHand(hand: list[str]) -> Rank:
     # Get high card, number of suits and counts of face cards
     cards = sorted([card_values.index(c[0]) for c in hand], reverse=True)
@@ -103,8 +121,31 @@ def rankHand(hand: list[str]) -> Rank:
     rank.rank = max(rankings)
     return rank
 
-print(rankHand('5H 5C 6S 7S KD'.split(' ')), ' vs ', rankHand('2C 3S 8S 8D TD'.split(' ')))
-print(rankHand('5D 8C 9S JS AC'.split(' ')), ' vs ', rankHand('2C 5C 7D 8S QH'.split(' ')))
-print(rankHand('2D 9C AS AH AC'.split(' ')), ' vs ', rankHand('3D 6D 7D TD QD'.split(' ')))
-print(rankHand('4D 6S 9H QH QC'.split(' ')), ' vs ', rankHand('3D 6D 7H QD QS'.split(' ')))
-print(rankHand('2H 2D 4C 4D 4S'.split(' ')), ' vs ', rankHand('3C 3D 3S 9S 9D'.split(' ')))
+player1rank = rankHand('5H 5C 6S 7S KD'.split(' '))
+player2rank = rankHand('2C 3S 8S 8D TD'.split(' '))
+print(f'{player1rank} vs {player2rank} - {'Player 1 Wins' if player1rank > player2rank else 'Player 2 Wins'}')
+
+player1rank = rankHand('5D 8C 9S JS AC'.split(' '))
+player2rank = rankHand('2C 5C 7D 8S QH'.split(' '))
+print(f'{player1rank} vs {player2rank} - {'Player 1 Wins' if player1rank > player2rank else 'Player 2 Wins'}')
+
+player1rank = rankHand('2D 9C AS AH AC'.split(' '))
+player2rank = rankHand('3D 6D 7D TD QD'.split(' '))
+print(f'{player1rank} vs {player2rank} - {'Player 1 Wins' if player1rank > player2rank else 'Player 2 Wins'}')
+
+player1rank = rankHand('4D 6S 9H QH QC'.split(' '))
+player2rank = rankHand('3D 6D 7H QD QS'.split(' '))
+print(f'{player1rank} vs {player2rank} - {'Player 1 Wins' if player1rank > player2rank else 'Player 2 Wins'}')
+
+player1rank = rankHand('2H 2D 4C 4D 4S'.split(' '))
+player2rank = rankHand('3C 3D 3S 9S 9D'.split(' '))
+print(f'{player1rank} vs {player2rank} - {'Player 1 Wins' if player1rank > player2rank else 'Player 2 Wins'}')
+print()
+
+player1wins = 0
+with open('pokerhands.txt') as f:
+    lines = f.read().splitlines()
+    for l in lines:
+        sl = l.split(' ')
+        if rankHand(sl[0:5]) > rankHand(sl[5:10]): player1wins += 1
+print(f'Player 1 Wins: {player1wins}')
