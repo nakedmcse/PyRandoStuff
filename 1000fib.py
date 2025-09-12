@@ -1,8 +1,10 @@
 def fib(digits: int) -> int:
     i = 2
     memo = [1,1,2]
-    while len(str(memo[i])) < digits:
-        memo.append(memo[i] + memo[i-1])
+    while len(str(memo[2])) < digits:
+        memo[0] = memo[1]
+        memo[1] = memo[2]
+        memo[2] = memo[0] + memo[1]
         i += 1
     return i+1
 
