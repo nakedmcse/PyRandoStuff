@@ -36,7 +36,7 @@ def extend_winning_combos():
 
 def reverse_brute_force() -> int:
     get_initial_winning_combos()
-    for _ in range(26): extend_winning_combos()
+    for _ in range(27): extend_winning_combos()
     return len(winning_combos)
 
 # Cached recursive solution
