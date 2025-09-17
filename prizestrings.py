@@ -1,6 +1,7 @@
 # Project Euler 191
 # https://projecteuler.net/problem=191
 import time
+from functools import cache
 
 # Reverse brute force in solution space
 winning_combos = []
@@ -37,6 +38,25 @@ def reverse_brute_force() -> int:
     get_initial_winning_combos()
     for _ in range(26): extend_winning_combos()
     return len(winning_combos)
+
+# Cached recursive solution
+@cache
+def get_winning_combos(day: int, a_con_count: int, l_count: int) -> int:
+    retval = 0
+
+    if a_con_count == 3: return 0   # 3 consecutive absence end condition
+    if l_count > 1: return 0        # more than 1 late end condition
+    if day == 30: return 1          # 30 days made winning end condition
+
+    retval += get_winning_combos(day+1, 0, l_count)             # add 'o', reset a, l stays same
+    retval += get_winning_combos(day+1, 0, l_count+1)           # add 'l', reset a, increment l
+    retval += get_winning_combos(day+1, a_con_count+1, l_count) # add 'a', increment a consec, l stays same
+
+    return retval
+
+start_time = time.time()
+solution_recursive = get_winning_combos(0,0,0)
+print(f'Cached recursive: {solution_recursive} in {time.time() - start_time} seconds')
 
 start_time = time.time()
 solution_rbf = reverse_brute_force()
