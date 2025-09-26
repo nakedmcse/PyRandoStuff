@@ -14,7 +14,6 @@ print(gozinta(1,12))
 print(gozinta(1,48))
 print(gozinta(1,120))
 
-for j in range(2,10000):
+for j in range(2,1000):
     g = gozinta(1,j)
-    if g == j:
-        print(f'{j} - {g}')
+    print(f'{j} - {g}')
