@@ -23,15 +23,54 @@ inverse_key_table = [
 pass_1_xor_bytes = [0x45, 0x71]
 pass_2_xor_bytes = [0x86, 0x23]
 
+pass_1_predefined = [
+    165, 176, 167, 250, 214, 93, 241, 128, 249, 138, 77, 60, 85, 174, 134, 92,
+    2, 226, 244, 158, 130, 3, 90, 170, 195, 45, 229, 122, 159, 242, 252, 179,
+    31, 61, 10, 114, 217, 76, 109, 78, 48, 1, 219, 161, 43, 108, 208, 32,
+    216, 100, 7, 105, 15, 209, 164, 188, 232, 75, 218, 206, 12, 184, 127, 14,
+    222, 11, 213, 132, 27, 70, 47, 120, 111, 68, 125, 26, 9, 203, 41, 245,
+    239, 49, 20, 30, 183, 56, 53, 178, 228, 147, 73, 182, 135, 149, 83, 143,
+    91, 42, 148, 169, 107, 129, 145, 243, 40, 157, 52, 177, 94, 191, 84, 5,
+    200, 193, 28, 65, 21, 58, 173, 50, 233, 23, 225, 227, 160, 89, 202, 103,
+    44, 221, 13, 38, 33, 113, 201, 185, 131, 254, 39, 144, 154, 248, 71, 198,
+    220, 136, 212, 17, 59, 240, 253, 163, 142, 194, 172, 62, 97, 51, 99, 46,
+    4, 180, 86, 224, 87, 55, 102, 211, 181, 95, 236, 152, 251, 196, 98, 162,
+    187, 126, 57, 189, 72, 230, 116, 67, 237, 29, 210, 192, 223, 141, 156, 231,
+    171, 117, 140, 115, 101, 74, 235, 79, 146, 63, 207, 16, 168, 18, 238, 139,
+    36, 104, 6, 255, 96, 118, 106, 215, 190, 124, 66, 166, 54, 123, 137, 151,
+    234, 175, 34, 88, 110, 82, 19, 205, 35, 69, 186, 246, 153, 25, 199, 80,
+    37, 24, 247, 150, 8, 121, 22, 133, 204, 112, 64, 119, 197, 155, 0, 81
+]
+
+pass_2_predefined = [
+    33, 222, 39, 249, 29, 185, 24, 55, 66, 157, 109, 192, 217, 188, 64, 250,
+    173, 84, 58, 118, 133, 56, 36, 50, 244, 16, 46, 236, 197, 219, 41, 100,
+    10, 112, 253, 184, 159, 65, 0, 60, 164, 232, 23, 113, 2, 149, 75, 203,
+    196, 165, 74, 119, 215, 68, 43, 90, 37, 18, 34, 158, 3, 82, 201, 151,
+    116, 95, 143, 126, 235, 155, 35, 115, 194, 117, 172, 209, 148, 21, 170, 200,
+    67, 134, 218, 142, 241, 175, 162, 105, 108, 254, 144, 220, 124, 49, 97, 51,
+    178, 4, 230, 86, 129, 52, 101, 5, 202, 190, 13, 231, 240, 48, 150, 169,
+    239, 107, 44, 233, 17, 38, 180, 26, 146, 128, 79, 191, 181, 206, 223, 141,
+    214, 135, 89, 140, 42, 125, 20, 73, 72, 47, 22, 61, 167, 123, 153, 91,
+    76, 70, 99, 189, 224, 103, 106, 229, 228, 27, 193, 182, 221, 1, 199, 213,
+    251, 198, 120, 9, 161, 195, 211, 57, 227, 102, 207, 122, 87, 6, 237, 12,
+    19, 78, 147, 154, 96, 255, 104, 71, 177, 179, 69, 187, 53, 152, 11, 242,
+    168, 245, 226, 247, 210, 163, 15, 132, 110, 31, 216, 171, 14, 212, 252, 7,
+    204, 166, 176, 80, 248, 8, 81, 208, 40, 183, 127, 145, 225, 174, 160, 205,
+    32, 88, 111, 77, 28, 63, 30, 139, 243, 137, 83, 98, 114, 130, 62, 121,
+    59, 85, 54, 138, 238, 246, 131, 93, 156, 136, 25, 186, 92, 45, 234, 94
+]
+
+
 def build_translation_table(xor_bytes: List[int], key_table: List[int]) -> List[int]:
     translation_table: List[int] = []
     for i in range(256):
-        translation_table.append(inverse_key_table[i ^ xor_bytes[0]] ^ xor_bytes[1])
+        translation_table.append(key_table[i ^ xor_bytes[0]] ^ xor_bytes[1])
     return translation_table
 
 def decode_on2_file(file_path: str) -> bytes:
-    pass_1_table = build_translation_table(pass_1_xor_bytes, inverse_key_table)
-    pass_2_table = build_translation_table(pass_2_xor_bytes, pass_1_table)
+    #pass_1_table = build_translation_table(pass_1_xor_bytes, inverse_key_table)
+    #pass_2_table = build_translation_table(pass_2_xor_bytes, inverse_key_table)
     with open(file_path, "rb") as file:
         file_content = file.read()
         if file_content[0:4].decode("ascii") != 'ONS2':
@@ -41,16 +80,16 @@ def decode_on2_file(file_path: str) -> bytes:
         version = int.from_bytes(file_content[12:16], byteorder='little')
         print(f'Compressed length: {compressed_length}, original length: {original_length}, version: {version}')
 
-        compressed_data = bytearray(compressed_length)
+        compressed_data = [0] * compressed_length
         for i in range(compressed_length):
-            compressed_data[i] = pass_2_table[file_content[16 + i]]
+            compressed_data[i] = pass_2_predefined[file_content[16 + i]]
 
-        expanded_data = zlib.decompress(compressed_data)
-        final_data = bytearray(original_length)
+        expanded_data = zlib.decompress(bytearray(compressed_data))
+        final_data = [0] * original_length
         for i in range(original_length):
-            final_data[i] = pass_1_table[expanded_data[i]]
+            final_data[i] = pass_1_predefined[expanded_data[i]]
 
-        return final_data
+        return bytearray(final_data)
 
 start = time.time()
 decoded_data = decode_on2_file("on2test-en.file")
