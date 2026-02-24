@@ -1,5 +1,5 @@
 from typing import List
-import zlib
+import zlib, time
 
 inverse_key_table = [
     0x37, 0x6a, 0x09, 0x5e, 0x7a, 0xaf, 0xf5, 0xa4, 0xba, 0x78, 0x84, 0x58, 0x35, 0x1e, 0x6b, 0x0c,
@@ -52,6 +52,9 @@ def decode_on2_file(file_path: str) -> bytes:
 
         return final_data
 
+start = time.time()
 decoded_data = decode_on2_file("on2test-en.file")
+end = time.time()
 print(decoded_data.decode('utf-8')[0:200])
 print()
+print(f'Decoded length: {len(decoded_data)} in {(end - start)*1000:.4f} ms')
